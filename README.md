@@ -1,3 +1,3 @@
 # Olist-Commerce-Data-Platform
 
-***** EM PRODUÇAO *****
+🚧 Em construção — pipeline de dados com o dataset público Olist (e-commerce brasileiro).
