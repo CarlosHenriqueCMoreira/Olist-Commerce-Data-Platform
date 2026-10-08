@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/CarlosHenriqueCMoreira/Olist-Commerce-Data-Platform/actions/workflows/ci.yml/badge.svg)](https://github.com/CarlosHenriqueCMoreira/Olist-Commerce-Data-Platform/actions/workflows/ci.yml)
 
-Plataforma de dados **end-to-end** construída sobre o dataset público de e-commerce da Olist. Ela carrega os CSVs brutos num PostgreSQL, transforma os dados em camadas (`raw → staging → intermediate → marts`) com dbt, valida a qualidade com 122 testes automáticos, orquestra tudo com Airflow e expõe as respostas num dashboard Streamlit.
+Plataforma de dados **end-to-end** construída sobre o dataset público de e-commerce da Olist. Ela carrega os CSVs brutos num PostgreSQL, transforma os dados em camadas (`raw → staging → intermediate → marts`) com dbt, valida a qualidade com 120 testes automáticos, orquestra tudo com Airflow e expõe as respostas num dashboard Streamlit.
 
 > **Pergunta de negócio:** como a operação de vendas e entrega da Olist influencia o faturamento e a satisfação dos clientes?
 
@@ -102,7 +102,7 @@ O projeto responde a 10 perguntas de negócio:
 | **pre-commit** | instalado | ganchos de ruff, black, YAML, arquivos grandes, espaços finais |
 | **GitHub Actions** | `checkout@v4`, `setup-python@v5` | CI com serviço PostgreSQL, lint, pytest e `dbt build` completo |
 
-> Versões "testadas" são as do ambiente onde o projeto foi validado. O `requirements.txt` usa limites mínimos (`dbt-core>=1.10`, `streamlit>=1.50` etc.).
+> Versões "testadas" são as do ambiente onde o projeto foi validado e são as fixadas (`==`) no `requirements.txt`; só o `pre-commit` mantém limite mínimo.
 
 ### O que **não** foi usado
 AWS S3 / `boto3`, PySpark / Databricks e Terraform (extensão opcional do plano, **não implementada**), `dbt_utils` e qualquer serviço de nuvem. O projeto roda 100% local.
@@ -124,7 +124,7 @@ Python ─ COPY ─▶  PostgreSQL schema raw   (tudo em text + source_file + in
                      ├──▶ Streamlit + Plotly (dashboard/queries/*.sql)
                      └──▶ data/exports/*.csv
 
- Transversais: dbt tests (122) · Airflow DAG · GitHub Actions
+ Transversais: dbt tests (120) · Airflow DAG · GitHub Actions
 ```
 
 Diagrama Mermaid completo e tabela de grãos dos marts: [docs/architecture.md](docs/architecture.md).
@@ -161,7 +161,7 @@ Diagrama Mermaid completo e tabela de grãos dos marts: [docs/architecture.md](d
 │   ├── dbt_project.yml  profiles.yml.example
 │   ├── macros/                # helpers e testes genéricos
 │   ├── models/{staging,intermediate,marts}/
-│   └── tests/                 # 17 testes singulares (negócio + reconciliação)
+│   └── tests/                 # 15 testes singulares (negócio + reconciliação)
 ├── airflow/
 │   ├── Dockerfile
 │   └── dags/olist_pipeline.py
@@ -180,7 +180,7 @@ Requisitos: **Python 3.11+**, **Docker** e **make**.
 
 ```bash
 git clone https://github.com/CarlosHenriqueCMoreira/Olist-Commerce-Data-Platform.git
-cd olist-commerce-data-platform
+cd Olist-Commerce-Data-Platform
 
 make setup      # cria .venv, instala dependências, copia .env e dbt_project/profiles.yml
 
@@ -266,7 +266,7 @@ Os marts de negócio guardam **medidas aditivas** (somas e contagens). Médias e
 | Camada de teste | Qtde | O que verifica |
 |---|---|---|
 | dbt genéricos | 105 | `unique`, `not_null`, `relationships`, `accepted_values`, `non_negative`, `positive`, `unique_combination` |
-| dbt singulares: negócio | 11 | ordem das datas, entregue com data, cancelado nunca entregue, pagamentos vs. pedido, atraso só em entregues |
+| dbt singulares: negócio | 9 | ordem das datas, entregue com data, cancelado sem data de entrega, pagamentos vs. pedido, sequência dos itens (1..N, sem lacunas) |
 | dbt singulares: reconciliação | 6 | pedidos, itens, preço, frete, pagamentos e avaliações iguais entre raw, fatos e marts (garante que os joins não multiplicam receita) |
 | pytest | 19 + 1 | validação de arquivos, checksum, configuração, erro de conexão, **idempotência (banco real)**, rollback, CLI, integridade do DAG |
 
@@ -318,7 +318,7 @@ Execução local no dataset completo (2026-10-08):
 |---|---|
 | Pedidos / período | 99.441, compras de 04/09/2016 a 17/10/2018 |
 | Receita de produtos / frete | R$ 13,49 mi / R$ 2,24 mi (sem cancelados e indisponíveis) |
-| Ticket médio | R$ 137,41 |
+| Ticket médio | R$ 137,42 |
 | Entregues / cancelados | 97,02% / 0,63% |
 | Taxa de atraso | 6,77% |
 | Prazo médio de entrega | 12,6 dias |
@@ -326,7 +326,7 @@ Execução local no dataset completo (2026-10-08):
 | Frete médio, < 100 km → > 2.000 km | R$ 13,37 → R$ 39,81 |
 | UFs com maior atraso | AL (21,4%), MA (17,4%), SE (15,2%) |
 | Categorias com maior receita | health_beauty, watches_gifts, bed_bath_table |
-| `dbt build` | **147 PASS, 6 WARN, 0 ERROR** em ~6 s |
+| `dbt build` | **145 PASS, 6 WARN, 0 ERROR** em ~6 s |
 
 Atraso e nota baixa andam juntos, mas isso é correlação.
 

@@ -9,11 +9,11 @@ repos:
         args: ["--maxkb=1000"]
       - id: check-merge-conflict
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.5.7
+    rev: v0.16.10
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: ["--fix"]
   - repo: https://github.com/psf/black
-    rev: 24.8.0
+    rev: 26.10.0
     hooks:
       - id: black

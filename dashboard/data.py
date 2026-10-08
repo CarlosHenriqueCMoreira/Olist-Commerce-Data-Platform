@@ -2,28 +2,20 @@
 
 from __future__ import annotations
 
-import os
+import sys
 from pathlib import Path
 
 import pandas as pd
-from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
-from sqlalchemy.engine import URL
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from ingestion.config import get_db_config  # noqa: E402
 
 QUERIES_DIR = Path(__file__).parent / "queries"
-load_dotenv(Path(__file__).parent.parent / ".env")
 
 
 def get_engine():
-    url = URL.create(
-        "postgresql+psycopg2",
-        username=os.environ["POSTGRES_USER"],
-        password=os.environ["POSTGRES_PASSWORD"],
-        host=os.environ["POSTGRES_HOST"],
-        port=int(os.environ["POSTGRES_PORT"]),
-        database=os.environ["POSTGRES_DB"],
-    )
-    return create_engine(url, pool_pre_ping=True)
+    return create_engine(get_db_config().url(), pool_pre_ping=True)
 
 
 def run_query(engine, name: str, **params) -> pd.DataFrame:

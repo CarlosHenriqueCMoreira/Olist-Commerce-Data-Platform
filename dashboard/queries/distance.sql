@@ -3,7 +3,7 @@ select
     distance_bucket,
     sum(orders)                                                           as orders,
     sum(freight_sum) / nullif(sum(orders_with_items), 0)                  as avg_freight,
-    sum(total_days_sum) / nullif(sum(delivered_with_date_orders), 0)      as avg_delivery_days,
+    sum(total_days_sum) / nullif(sum(total_days_orders), 0)                  as avg_delivery_days,
     sum(review_score_sum) / nullif(sum(review_count), 0)                  as avg_score
 from marts.mart_delivery_performance
 where purchase_month between date_trunc('month', CAST(:start_date AS date)) and :end_date

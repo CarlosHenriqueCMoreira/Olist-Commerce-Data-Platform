@@ -12,7 +12,7 @@ flowchart TD
     INT --> MARTS["dbt marts (tables)<br/>dim_* · fct_* · mart_*"]
     MARTS --> DASH["Streamlit + Plotly<br/>dashboard/queries/*.sql"]
     MARTS --> EXP["data/exports (CSV)"]
-    TESTS{{"dbt tests (122)<br/>genéricos · negócio · reconciliação"}} -.-> STG
+    TESTS{{"dbt tests (120)<br/>genéricos · negócio · reconciliação"}} -.-> STG
     TESTS -.-> INT
     TESTS -.-> MARTS
     AF["Airflow DAG<br/>olist_pipeline"] -.orquestra.-> PY

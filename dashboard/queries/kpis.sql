@@ -8,7 +8,7 @@ select
     sum(delayed_orders)::float / nullif(sum(delivered_with_date_orders), 0) as delay_rate,
     sum(cancelled_orders)::float / nullif(sum(orders), 0)                   as cancel_rate,
     sum(review_score_sum) / nullif(sum(review_count), 0)                    as avg_score,
-    sum(delivery_days_sum) / nullif(sum(delivered_with_date_orders), 0)     as avg_delivery_days
+    sum(delivery_days_sum) / nullif(sum(total_days_orders), 0)                 as avg_delivery_days
 from marts.mart_sales_daily
 where purchase_date between :start_date and :end_date
   and (cardinality(CAST(:states AS text[])) = 0 or customer_state = any(CAST(:states AS text[])))

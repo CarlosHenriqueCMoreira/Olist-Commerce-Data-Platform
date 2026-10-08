@@ -32,3 +32,6 @@ airflow/airflow.db
 .vscode/
 data/sample/*
 !data/sample/.gitkeep
+
+# dbt: identificador local do usuário
+dbt_project/.user.yml

@@ -6,13 +6,13 @@
 
 ## Testes existentes
 
-Execução de 2026-10-08, dataset real completo: **122 testes, 31 modelos, 147 PASS, 6 WARN, 0 ERROR** (≈6 s). No dataset sintético: 153/153 PASS.
+Execução de 2026-10-08, dataset real completo: **120 testes, 31 modelos, 145 PASS, 6 WARN, 0 ERROR** (≈6 s). No dataset sintético: 151/151 PASS.
 
 | Tipo | Quantidade | Exemplos |
 |---|---|---|
 | Genéricos dbt (inclui os próprios) | 105 | `unique`, `not_null`, `relationships` (pedido→cliente, item→pedido/produto/vendedor, fatos→dimensões), `accepted_values` (status do pedido, tipo de pagamento, nota 1-5, faixas de atraso) |
 | Genéricos próprios (parte dos 105) | — | `non_negative` (preço, frete, pagamento, peso), `positive` (`order_item_id`), `unique_combination` (chaves compostas e grão dos marts) |
-| Singulares de negócio | 11 | entrega ≥ compra; aprovação ≥ compra; envio ≥ compra; entrega ≥ envio; envio vs. aprovação (monitorado); pedido entregue tem data de entrega; cancelado não tem entrega; flags cancelado/entregue exclusivas; atraso só em entregues; itens com quantidade positiva; pagamentos coerentes com o pedido |
+| Singulares de negócio | 9 | entrega ≥ compra; aprovação ≥ compra; envio ≥ compra; entrega ≥ envio; envio vs. aprovação (monitorado); pedido entregue tem data de entrega; cancelado não tem entrega; `order_item_id` sequencial 1..N sem lacunas por pedido; pagamentos coerentes com o pedido |
 | Singulares de reconciliação | 6 | contagem de pedidos raw = fct; soma de preço e frete e nº de itens iguais em raw, `fct_order_items`, `fct_orders` e `mart_sales_daily` (sem multiplicação por join); pagamentos raw = fct; avaliações raw = fct e pedidos avaliados iguais; cancelados não contam como entregues/receita nos marts; nenhum pedido some do mart de vendas |
 | Python (pytest) | 19 passam + 1 (DAG) pulado sem Airflow instalado | validação de arquivos, checksum, colunas ausentes, arquivo vazio/ausente, BOM, campos multilinha, configuração e erro de conexão, **idempotência da carga** (integração, schema isolado `raw_test`), falha com rollback e registro, CLI, integridade do DAG |
 

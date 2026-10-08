@@ -116,7 +116,7 @@ def load_file(engine: Engine, info: FileInfo, run_id: str, force: bool = False) 
                 return LoadResult(info.table, "skipped", info.row_count)
         rows = _copy_into_table(engine, info)
         metadata.finish_run(engine, run_id, name, "success", rows)
-        log.info("%s: %d linhas carregadas em raw.%s", name, rows, info.table)
+        log.info("%s: %d linhas carregadas em %s.%s", name, rows, RAW_SCHEMA, info.table)
         return LoadResult(info.table, "success", rows)
     except Exception as exc:  # registra e propaga como resultado; o chamador decide falhar
         metadata.finish_run(engine, run_id, name, "failed", error_message=str(exc)[:2000])

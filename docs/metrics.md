@@ -37,7 +37,7 @@ Regras adicionais:
 | Pedidos | 99.441 (compras de 2016-09-04 a 2018-10-17) |
 | Receita de produtos (sem cancelados/indisponíveis) | R$ 13.494.401 |
 | Receita de frete | R$ 2.241.126 |
-| Ticket médio | R$ 137,41 |
+| Ticket médio | R$ 137,42 |
 | Entregues | 97,02% |
 | Cancelados | 0,63% |
 | Taxa de atraso | 6,77% |
