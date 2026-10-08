@@ -1,0 +1,76 @@
+version: 2
+
+models:
+  - name: int_zip_locations
+    description: "Um ponto (lat/lng médios) por prefixo de CEP; descarta coordenadas fora do Brasil."
+    columns:
+      - name: zip_code_prefix
+        description: "Prefixo de CEP."
+        data_tests: [unique, not_null]
+
+  - name: int_order_payments_agg
+    description: "Pagamentos agregados por pedido (total, parcelas máximas, método principal)."
+    columns:
+      - name: order_id
+        description: "Pedido."
+        data_tests: [unique, not_null]
+      - name: payments_total
+        description: "Soma dos pagamentos em R$."
+        data_tests: [not_null, non_negative]
+
+  - name: int_order_reviews_latest
+    description: "Avaliação mais recente por pedido (547 pedidos têm mais de uma)."
+    columns:
+      - name: order_id
+        description: "Pedido."
+        data_tests: [unique, not_null]
+
+  - name: int_order_items_enriched
+    description: "Itens com categoria, vendedor e distância cliente-vendedor (haversine entre centróides de CEP)."
+    columns:
+      - name: order_item_key
+        description: "order_id-order_item_id."
+        data_tests: [unique, not_null]
+      - name: distance_km
+        description: "Distância em km; nula se algum CEP não tem geolocalização."
+        data_tests: [non_negative]
+
+  - name: int_orders_enriched
+    description: "Um pedido por linha com cliente, itens, pagamento, avaliação, métricas de tempo e flags de negócio."
+    columns:
+      - name: order_id
+        description: "Pedido."
+        data_tests: [unique, not_null]
+      - name: is_delivered
+        description: "Status = delivered."
+        data_tests: [not_null]
+      - name: is_cancelled
+        description: "Status = canceled."
+        data_tests: [not_null]
+      - name: is_delayed
+        description: "Entregue com data de entrega posterior (em dias) à estimada. Falso para pedidos não entregues."
+        data_tests: [not_null]
+      - name: delay_bucket
+        description: "Faixa de atraso: on_time, late_1_3d, late_4_7d, late_8d_plus, not_delivered."
+        data_tests:
+          - accepted_values:
+              arguments: {values: [on_time, late_1_3d, late_4_7d, late_8d_plus, not_delivered]}
+      - name: products_value
+        description: "Soma dos preços dos itens (receita de produtos, sem frete)."
+        data_tests: [non_negative]
+      - name: freight_value
+        description: "Soma dos fretes."
+        data_tests: [non_negative]
+
+  - name: int_seller_orders
+    description: "Vendedor x pedido, com o valor atribuível a cada vendedor."
+    data_tests:
+      - unique_combination:
+          arguments: {columns: [seller_id, order_id]}
+
+  - name: int_product_items
+    description: "Itens com atributos do pedido para métricas de produto e categoria."
+    columns:
+      - name: order_item_key
+        description: "Chave do item."
+        data_tests: [unique, not_null]

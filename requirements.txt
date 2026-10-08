@@ -1,0 +1,15 @@
+# Runtime
+pandas>=2.2
+SQLAlchemy>=2.0
+psycopg2-binary>=2.9
+python-dotenv>=1.0
+dbt-core>=1.10
+dbt-postgres>=1.10
+streamlit>=1.50
+plotly>=5.20
+
+# Dev / qualidade
+pytest>=8
+ruff>=0.5
+black>=24
+pre-commit>=3.7

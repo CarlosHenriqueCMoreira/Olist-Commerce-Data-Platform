@@ -1,0 +1,29 @@
+name: olist_platform
+version: "1.0.0"
+config-version: 2
+profile: olist
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  # tolerância (R$) entre soma dos pagamentos e (produtos + frete); veja docs/data_quality.md
+  payment_tolerance: 1.0
+  # nota <= low_review_max é considerada avaliação baixa
+  low_review_max: 2
+
+models:
+  olist_platform:
+    staging:
+      +materialized: view
+      +schema: staging
+    intermediate:
+      +materialized: table
+      +schema: intermediate
+    marts:
+      +materialized: table
+      +schema: marts

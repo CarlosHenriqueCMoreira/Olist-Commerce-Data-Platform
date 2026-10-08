@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "CSVs originais carregados como texto por ingestion/load_raw.py (schema raw)."
+    schema: raw
+    tables:
+      - name: orders
+      - name: order_items
+      - name: order_payments
+      - name: order_reviews
+      - name: products
+      - name: customers
+      - name: sellers
+      - name: geolocation
+      - name: product_category_name_translation
+      - name: ingestion_runs

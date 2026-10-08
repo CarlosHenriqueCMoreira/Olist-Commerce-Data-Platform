@@ -1,0 +1,34 @@
+# secrets
+.env
+
+# dados (não versionar CSVs nem exports)
+data/raw/*
+!data/raw/.gitkeep
+data/exports/*
+!data/exports/.gitkeep
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# dbt
+dbt_project/target/
+dbt_project/dbt_packages/
+dbt_project/logs/
+dbt_project/profiles.yml
+logs/
+
+# airflow
+airflow/logs/
+airflow/airflow.db
+
+# sistema / editor
+.DS_Store
+.idea/
+.vscode/
+data/sample/*
+!data/sample/.gitkeep

@@ -1,0 +1,24 @@
+[project]
+name = "olist-commerce-data-platform"
+version = "1.0.0"
+description = "End-to-end data platform (Python, PostgreSQL, dbt, Airflow, Streamlit) on the Olist public e-commerce dataset."
+requires-python = ">=3.11"
+readme = "README.md"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["notebook", ".venv", "dbt_project/target"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]  # comprimento de linha é responsabilidade do black
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = ["integration: precisa de PostgreSQL acessível (variáveis POSTGRES_*)"]

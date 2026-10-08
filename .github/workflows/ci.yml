@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: olist
+          POSTGRES_USER: olist
+          POSTGRES_PASSWORD: ci_password
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U olist -d olist"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: olist
+      POSTGRES_USER: olist
+      POSTGRES_PASSWORD: ci_password
+      OLIST_DATA_DIR: data/sample
+      DBT_PROFILES_DIR: .
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Lint (ruff) e formatação (black)
+        run: |
+          ruff check .
+          black --check .
+
+      - name: Testes Python (unit + integração com PostgreSQL)
+        run: pytest -q
+
+      # O dataset real não é versionado (licença CC BY-NC-SA). O CI usa um dataset sintético
+      # com o mesmo formato; o dbt build abaixo executa TODOS os testes de qualidade.
+      - name: Gerar dataset sintético
+        run: python scripts/generate_sample_data.py data/sample
+
+      - name: Ingestão raw (roda duas vezes para provar idempotência)
+        run: |
+          python -m src.cli load
+          python -m src.cli load
+
+      - name: dbt build (modelos + testes)
+        working-directory: dbt_project
+        run: |
+          cp profiles.yml.example profiles.yml
+          dbt build
+
+      - name: Exportar marts
+        run: python -m src.cli export

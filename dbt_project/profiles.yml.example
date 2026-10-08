@@ -1,0 +1,13 @@
+# Copie para profiles.yml (make setup faz isso). Lê as mesmas variáveis do .env.
+olist:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('POSTGRES_HOST', 'localhost') }}"
+      port: "{{ env_var('POSTGRES_PORT', '5433') | as_number }}"
+      user: "{{ env_var('POSTGRES_USER', 'olist') }}"
+      password: "{{ env_var('POSTGRES_PASSWORD') }}"
+      dbname: "{{ env_var('POSTGRES_DB', 'olist') }}"
+      schema: analytics # não usado: generate_schema_name grava direto em staging/intermediate/marts
+      threads: 4

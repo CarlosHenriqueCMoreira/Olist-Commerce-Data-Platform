@@ -1,0 +1,153 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: "Um pedido por linha. Tipos corrigidos, status normalizado."
+    columns:
+      - name: order_id
+        description: "Chave do pedido."
+        data_tests: [unique, not_null]
+      - name: customer_id
+        description: "Cliente do pedido (um customer_id por pedido na origem)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('stg_customers'), field: customer_id}
+      - name: order_status
+        description: "Status normalizado em minúsculas."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [created, approved, invoiced, processing, shipped, delivered, unavailable, canceled]
+      - name: purchased_at
+        description: "Data/hora da compra."
+        data_tests: [not_null]
+      - name: approved_at
+        description: "Aprovação do pagamento; nulo em pedidos não aprovados."
+      - name: shipped_at
+        description: "Entrega à transportadora."
+      - name: delivered_at
+        description: "Entrega ao cliente."
+      - name: estimated_delivery_at
+        description: "Data estimada de entrega informada ao cliente."
+        data_tests: [not_null]
+
+  - name: stg_order_items
+    description: "Um item de pedido por linha (order_id + order_item_id)."
+    data_tests:
+      - unique_combination:
+          arguments: {columns: [order_id, order_item_id]}
+    columns:
+      - name: order_id
+        description: "Pedido."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('stg_orders'), field: order_id}
+      - name: order_item_id
+        description: "Sequencial do item dentro do pedido (começa em 1)."
+        data_tests: [not_null, positive]
+      - name: product_id
+        description: "Produto vendido."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('stg_products'), field: product_id}
+      - name: seller_id
+        description: "Vendedor do item."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('stg_sellers'), field: seller_id}
+      - name: price
+        description: "Preço do item em R$ (sem frete)."
+        data_tests: [not_null, non_negative]
+      - name: freight_value
+        description: "Frete do item em R$."
+        data_tests: [not_null, non_negative]
+
+  - name: stg_order_payments
+    description: "Um pagamento por linha (order_id + payment_sequential). Um pedido pode ter vários."
+    data_tests:
+      - unique_combination:
+          arguments: {columns: [order_id, payment_sequential]}
+    columns:
+      - name: order_id
+        description: "Pedido."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('stg_orders'), field: order_id}
+      - name: payment_type
+        description: "Meio de pagamento."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [credit_card, boleto, voucher, debit_card, not_defined]
+      - name: payment_value
+        description: "Valor pago em R$."
+        data_tests: [not_null, non_negative]
+
+  - name: stg_order_reviews
+    description: "Uma avaliação por linha. A chave é review_key = md5(review_id|order_id)."
+    columns:
+      - name: review_key
+        description: "Chave sintética: review_id sozinho não é único na origem."
+        data_tests: [unique, not_null]
+      - name: order_id
+        description: "Pedido avaliado (a nota pertence ao pedido, não ao produto)."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('stg_orders'), field: order_id}
+      - name: review_score
+        description: "Nota de 1 a 5."
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments: {values: [1, 2, 3, 4, 5], quote: false}
+
+  - name: stg_products
+    description: "Um produto por linha. Colunas com erro de grafia corrigidas (lenght -> length)."
+    columns:
+      - name: product_id
+        description: "Chave do produto."
+        data_tests: [unique, not_null]
+      - name: weight_g
+        description: "Peso em gramas."
+        data_tests: [non_negative]
+
+  - name: stg_customers
+    description: "Um customer_id por linha (um por pedido); customer_unique_id identifica a pessoa."
+    columns:
+      - name: customer_id
+        description: "Chave usada pelos pedidos."
+        data_tests: [unique, not_null]
+      - name: customer_unique_id
+        description: "Identificador da pessoa (pode se repetir entre customer_id)."
+        data_tests: [not_null]
+      - name: state
+        description: "UF."
+        data_tests: [not_null]
+
+  - name: stg_sellers
+    description: "Um vendedor por linha."
+    columns:
+      - name: seller_id
+        description: "Chave do vendedor."
+        data_tests: [unique, not_null]
+
+  - name: stg_geolocation
+    description: "Pontos de geolocalização por prefixo de CEP (vários por prefixo)."
+    columns:
+      - name: zip_code_prefix
+        description: "Prefixo de CEP (5 dígitos)."
+        data_tests: [not_null]
+
+  - name: stg_product_category_translation
+    description: "Tradução das categorias PT -> EN (71 categorias)."
+    columns:
+      - name: category_name_pt
+        description: "Categoria em português."
+        data_tests: [unique, not_null]

@@ -1,0 +1,155 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: "Calendário diário 2016-2018."
+    columns:
+      - name: date_day
+        description: "Dia."
+        data_tests: [unique, not_null]
+
+  - name: dim_location
+    description: "Um ponto (lat/lng médios) por prefixo de CEP."
+    columns:
+      - name: zip_code_prefix
+        description: "Prefixo de CEP."
+        data_tests: [unique, not_null]
+
+  - name: dim_customer
+    description: "Um customer_id por linha (um por pedido); customer_unique_id identifica a pessoa."
+    columns:
+      - name: customer_id
+        description: "Chave."
+        data_tests: [unique, not_null]
+
+  - name: dim_seller
+    description: "Vendedores com localização."
+    columns:
+      - name: seller_id
+        description: "Chave."
+        data_tests: [unique, not_null]
+
+  - name: dim_product
+    description: "Produtos com categoria em inglês (fallback: português, depois 'unknown')."
+    columns:
+      - name: product_id
+        description: "Chave."
+        data_tests: [unique, not_null]
+      - name: category_name
+        description: "Categoria normalizada."
+        data_tests: [not_null]
+
+  - name: fct_orders
+    description: "Fato no grão de pedido."
+    columns:
+      - name: order_id
+        description: "Chave."
+        data_tests: [unique, not_null]
+      - name: customer_id
+        description: "Cliente."
+        data_tests:
+          - relationships:
+              arguments: {to: ref('dim_customer'), field: customer_id}
+      - name: purchase_date
+        description: "Dia da compra."
+        data_tests:
+          - not_null
+          - relationships:
+              arguments: {to: ref('dim_date'), field: date_day}
+      - name: order_status
+        description: "Status do pedido."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [created, approved, invoiced, processing, shipped, delivered, unavailable, canceled]
+      - name: products_value
+        description: "Receita de produtos (sem frete)."
+        data_tests: [non_negative]
+      - name: freight_value
+        description: "Frete."
+        data_tests: [non_negative]
+      - name: review_score
+        description: "Nota da avaliação mais recente (nula se não avaliado)."
+
+  - name: fct_order_items
+    description: "Fato no grão de item de pedido."
+    columns:
+      - name: order_item_key
+        description: "Chave."
+        data_tests: [unique, not_null]
+      - name: order_id
+        description: "Pedido."
+        data_tests:
+          - relationships:
+              arguments: {to: ref('fct_orders'), field: order_id}
+      - name: product_id
+        description: "Produto."
+        data_tests:
+          - relationships:
+              arguments: {to: ref('dim_product'), field: product_id}
+      - name: seller_id
+        description: "Vendedor."
+        data_tests:
+          - relationships:
+              arguments: {to: ref('dim_seller'), field: seller_id}
+      - name: price
+        description: "Preço em R$."
+        data_tests: [non_negative]
+
+  - name: fct_payments
+    description: "Fato no grão de pagamento."
+    columns:
+      - name: payment_key
+        description: "Chave."
+        data_tests: [unique, not_null]
+      - name: order_id
+        description: "Pedido."
+        data_tests:
+          - relationships:
+              arguments: {to: ref('fct_orders'), field: order_id}
+      - name: payment_value
+        description: "Valor pago."
+        data_tests: [non_negative]
+
+  - name: fct_reviews
+    description: "Fato no grão de avaliação."
+    columns:
+      - name: review_key
+        description: "Chave sintética (review_id + order_id)."
+        data_tests: [unique, not_null]
+      - name: order_id
+        description: "Pedido."
+        data_tests:
+          - relationships:
+              arguments: {to: ref('fct_orders'), field: order_id}
+
+  - name: mart_sales_daily
+    description: "Vendas por dia x UF x status. Medidas aditivas; razões são calculadas por quem consome."
+    data_tests:
+      - unique_combination:
+          arguments: {columns: [purchase_date, customer_state, order_status]}
+  - name: mart_delivery_performance
+    description: "Etapas do ciclo, frete e satisfação por mês x faixa de distância."
+    data_tests:
+      - unique_combination:
+          arguments: {columns: [purchase_month, distance_bucket]}
+  - name: mart_regional_operations
+    description: "Operação por mês x UF do cliente."
+    data_tests:
+      - unique_combination:
+          arguments: {columns: [purchase_month, customer_state]}
+  - name: mart_seller_performance
+    description: "Desempenho por vendedor x mês."
+    data_tests:
+      - unique_combination:
+          arguments: {columns: [seller_id, purchase_month]}
+  - name: mart_product_performance
+    description: "Desempenho por produto x mês (agregue por categoria no consumo)."
+    data_tests:
+      - unique_combination:
+          arguments: {columns: [product_id, purchase_month]}
+  - name: mart_customer_experience
+    description: "Pedidos por mês x faixa de atraso x nota."
+    data_tests:
+      - unique_combination:
+          arguments: {columns: [purchase_month, delay_bucket, review_score]}
